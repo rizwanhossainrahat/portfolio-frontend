@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { json, z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   Form,
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import Password from "../ui/Password"
+import { useRouter } from "next/navigation"
 
 export const Role = z.enum(["USER", "ADMIN"] as const, { message: "Role is required" })
 
@@ -52,14 +53,28 @@ export default function RegisterForm() {
       Role: "USER",
     },
   })
-
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
-
+  
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setLoading(true)
+    try {
+      setLoading(true)
     console.log(values)
-    // TODO: connect with your API or Prisma backend
-    setTimeout(() => setLoading(false), 2000)
+    const res=await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/create-user`,{
+      method:"POST",
+       headers: {
+        "Content-Type": "application/json",
+      },
+      body:JSON.stringify(values)
+      
+    })
+    const data=await res.json()
+    router.push("/")
+    
+    } catch (error:any) {
+      console.log(error.message)
+    }
+   
   }
 
   return (

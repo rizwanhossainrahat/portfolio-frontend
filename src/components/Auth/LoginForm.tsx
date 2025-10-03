@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Enter a valid email" }),
@@ -33,13 +35,34 @@ export default function LoginForm() {
 
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
-  const onSubmit = (values: LoginFormValues) => {
-    setLoading(true)
-    console.log(values)
-    // TODO: connect with your login API
-    setTimeout(() => setLoading(false), 2000)
+ const onSubmit = async (values: LoginFormValues) => {
+  try {
+    setLoading(true);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values),
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    console.log(data.data.id)
+    if (data) {
+      toast.success("User logged in successfully");
+      router.push("/");
+    } else {
+      toast.error(data.message || "Login failed");
+    }
+  } catch (error: any) {
+    console.log(error.message);
+    toast.error("User can't Login");
+  } finally {
+    setLoading(false);
   }
+};
+
 
   return (
     // <div className="flex justify-center items-center min-h-screen bg-gradient-to-tr from-blue-300 via-green-200 to-blue-200 p-6">
